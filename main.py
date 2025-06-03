@@ -1,9 +1,11 @@
 import streamlit as st
+from auth import init_firebase, register_coach, login_coach
 
 st.set_page_config(page_title="CricScore+", layout="centered")
-
 # Title
 st.title("Welcome to CricScore+")
+
+db = init_firebase()
 
 # Tabs for Login and Register
 page = st.sidebar.selectbox("Choose Option", ["Login", "Register"])
