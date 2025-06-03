@@ -10,10 +10,6 @@ db = init_firebase()
 # Tabs for Login and Register
 page = st.sidebar.selectbox("Choose Option", ["Login", "Register"])
 
-# Store user data in session_state (temporary)
-if "users" not in st.session_state:
-    st.session_state.users = {"coach1": "password123", "player1": "pass456"}
-
 if page == "Register":
     st.subheader("Create a New Account")
 
@@ -22,13 +18,14 @@ if page == "Register":
     confirm_password = st.text_input("Confirm Password", type="password")
 
     if st.button("Register"):
-        if username in st.session_state.users:
-            st.error("Username already exists. Try another.")
-        elif password != confirm_password:
-            st.error("Passwords do not match.")
+    if password != confirm_password:
+        st.error("Passwords do not match.")
+    else:
+        success, message = register_coach(db, username, "TeamNameHere", password)
+        if success:
+            st.success(message)
         else:
-            st.session_state.users[username] = password
-            st.success("Registration successful! You can now log in.")
+            st.error(message)
 
 elif page == "Login":
     st.subheader("Login to Your Account")
@@ -36,8 +33,9 @@ elif page == "Login":
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
-    if st.button("Login"):
-        if username in st.session_state.users and st.session_state.users[username] == password:
-            st.success(f"Welcome, {username}!")
-        else:
-            st.error("Incorrect username or password.")
+  if st.button("Login"):
+    success, team = login_coach(db, username, password)
+    if success:
+        st.success(f"Welcome, {username} from team {team}!")
+    else:
+        st.error("Incorrect username or password.")
