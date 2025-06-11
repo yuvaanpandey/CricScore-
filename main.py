@@ -18,24 +18,24 @@ if page == "Register":
     confirm_password = st.text_input("Confirm Password", type="password")
 
     if st.button("Register"):
-     if password != confirm_password:
-        st.error("Passwords do not match.")
-    else:
-        success, message = register_coach(db, username, "TeamNameHere", password)
-        if success:
-            st.success(message)
+        if password != confirm_password:
+            st.error("Passwords do not match.")
         else:
-            st.error(message)
+            success, message = register_coach(db, username, "TeamNameHere", password)
+            if success:
+                st.success(message)
+            else:
+                st.error(message)
 
 elif page == "Login":
-  st.subheader("Login to Your Account")
+    st.subheader("Login to Your Account")
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
-  if st.button("Login"):
-    success, team = login_coach(db, username, password)
-    if success:
-        st.success(f"Welcome, {username} from team {team}!")
-    else:
-        st.error("Incorrect username or password.")
+    if st.button("Login"):
+        success, team = login_coach(db, username, password)
+        if success:
+            st.success(f"Welcome, {username} from team {team}!")
+        else:
+            st.error("Incorrect username or password.")
