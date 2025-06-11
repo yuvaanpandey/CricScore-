@@ -18,7 +18,7 @@ if page == "Register":
     confirm_password = st.text_input("Confirm Password", type="password")
 
     if st.button("Register"):
-    if password != confirm_password:
+     if password != confirm_password:
         st.error("Passwords do not match.")
     else:
         success, message = register_coach(db, username, "TeamNameHere", password)
