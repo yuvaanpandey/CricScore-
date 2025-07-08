@@ -120,10 +120,10 @@ def show_app():
     page = st.sidebar.radio("Navigate", ["Edit Player Details", "Team Results", "Player Analytics"])
     username = st.session_state['username']
 
-   # 1. Edit Player Details
-if page == "Edit Player Details":
-    st.header("Manage Your Team")
-    df = fetch_players(db, username)
+    # 1. Edit Player Details
+    if page == "Edit Player Details":
+        st.header("Manage Your Team")
+        df = fetch_players(db, username)
 
     # Add/Register Player
     st.subheader("Add / Register Player")
