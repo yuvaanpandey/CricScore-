@@ -142,6 +142,7 @@ with st.form("player_form"):
 
 # Edit Existing Player Info
 st.subheader("Edit Player Info")
+df = fetch_players(db, username)
 if not df.empty:
     selected_player = st.selectbox("Select Player to Edit", df.index.tolist(), key="edit_player")
     existing_role = df.loc[selected_player]["role"]
