@@ -2,15 +2,15 @@ import pyrebase
 
 def init_firebase():
     firebaseConfig = {
-        "apiKey": "AIzaSyCq9HpJNkW3N60pwjTymKEKwV5a5nPZOo",
-        "authDomain": "cricket-wala-project.firebaseapp.com",
-        "databaseURL": "https://cricket-wala-project-default-rtdb.firebaseio.com",
-        "projectId": "cricket-wala-project",
-        "storageBucket": "cricket-wala-project.appspot.com",
-        "messagingSenderId": "959184856893",
-        "appId": "1:959184856893:web:bbc5346f69170cddf80754",
-        "measurementId": "G-469DLPQV0V"
-    }
+    "apiKey": "AIzaSyC2dcz3liQ2xKesIVd4tNZ0X7DDH2ZNiKw",
+    "authDomain": "cricscore-f1c9f.firebaseapp.com",
+    "databaseURL": "https://cricscore-f1c9f-default-rtdb.firebaseio.com",
+    "projectId": "cricscore-f1c9f",
+    "storageBucket": "cricscore-f1c9f.firebasestorage.app",
+    "messagingSenderId": "988380158146",
+    "appId": "1:988380158146:web:a07eec6823901b9d8f435b",
+    "measurementId": "G-2M1G6NFR4E"
+}
     firebase = pyrebase.initialize_app(firebaseConfig)
     return firebase.database()
 
