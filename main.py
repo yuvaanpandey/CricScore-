@@ -87,7 +87,7 @@ def show_credentials():
     set_bg_local("login_bg.png")
     st.title("CricScore+")
     mode = st.radio("", ["Login", "Register"], horizontal=True)
-    if mode == "Register":
+if mode == "Register":
     st.subheader("Register as Coach")
     user = st.text_input("Your Name", key="reg_user")
     team = st.text_input("Your Team Name", key="reg_team")
