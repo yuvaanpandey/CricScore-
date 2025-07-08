@@ -6,6 +6,46 @@ import altair as alt
 from auth import init_firebase, register_coach, login_coach
 from players import fetch_players, save_player, fetch_matches, save_match, delete_player, delete_match
 
+def apply_dark_theme():
+    st.markdown("""
+        <style>
+        html, body, .stApp {
+            background-color: #111;
+            color: #f0f0f0;
+        }
+        .stButton>button {
+            background-color: #222;
+            color: #f0f0f0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 0.4rem 0.8rem;
+        }
+        .stButton>button:hover {
+            background-color: #333 !important;
+            color: white !important;
+        }
+        .stTextInput > div > input,
+        .stSelectbox > div,
+        .stNumberInput input {
+            background-color: #222;
+            color: #f0f0f0;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        .stDataFrame, .stTable {
+            background-color: #222;
+            color: #f0f0f0;
+            border: 1px solid #444;
+        }
+        .css-1cpxqw2, .stMarkdown, .stExpander, .stTable {
+            color: #f0f0f0;
+        }
+        .streamlit-expanderHeader {
+            font-weight: bold;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
 def set_bg_local(img_path):
     with open(img_path, "rb") as f:
         data = f.read()
@@ -59,7 +99,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 db = init_firebase()
-
+apply_dark_theme()
 # Session state
 if 'logged_in' not in st.session_state:
     st.session_state.update({
@@ -70,7 +110,7 @@ if 'logged_in' not in st.session_state:
 
 # Credentials page
 def show_credentials():
-    set_bg_local("123.jpg")
+    # set_bg_local("123.jpg")
     st.title("Crick Buzzer")
     mode = st.radio("", ["Login", "Register"], horizontal=True)
     if mode == "Register":
