@@ -116,7 +116,7 @@ def show_credentials():
 
 # Main application pages
 def show_app():
-    st.sidebar.title(f"Welcome, Coach – {st.session_state['team']}")
+    st.sidebar.title(f"Welcome, Coach - {st.session_state['team']}")
     page = st.sidebar.radio("Navigate", ["Edit Player Details", "Team Results", "Player Analytics"])
     username = st.session_state['username']
 
@@ -184,7 +184,7 @@ def show_app():
         st.subheader("Delete Player")
         if not df.empty:
             to_delete = st.selectbox("Select Player to delete", df.index.tolist(), key="delete_player")
-            if st.button("Remove Player"):
+            if st.button("Delete Player"):
                 delete_player(db, username, to_delete)
                 st.success(f"Deleted player '{to_delete}'")
                 st.rerun()
