@@ -68,7 +68,7 @@ def set_bg_local(img_path):
     )
 
 # Initialize Firebase
-st.set_page_config(page_title="Crick Buzzer", layout="wide")
+st.set_page_config(page_title="CricScore+", layout="wide")
 st.markdown("""
     <style>
         .css-1jc7ptx, .e1ewe7hr3, .e1ewe7hr1 {
@@ -111,7 +111,7 @@ if 'logged_in' not in st.session_state:
 # Credentials page
 def show_credentials():
     # set_bg_local("123.jpg")
-    st.title("Crick Buzzer")
+    st.title("CricScore+")
     mode = st.radio("", ["Login", "Register"], horizontal=True)
     if mode == "Register":
         st.subheader("Register as Coach")
