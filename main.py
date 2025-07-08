@@ -120,8 +120,8 @@ def show_app():
     page = st.sidebar.radio("Navigate", ["Edit Player Details", "Team Results", "Player Analytics"])
     username = st.session_state['username']
 
-    # 1. Edit Player Details
-    if page == "Edit Player Details":
+   # 1. Edit Player Details
+if page == "Edit Player Details":
     st.header("Manage Your Team")
     df = fetch_players(db, username)
 
@@ -247,46 +247,6 @@ def show_app():
                 st.rerun()
         else:
             st.warning("No valid match data found for this player.")
-
-            # Clean malformed rows (if any)
-            if isinstance(matches_df, pd.DataFrame):
-                matches_df = matches_df.dropna(how="all")
-
-            if not matches_df.empty:
-                match_id = st.selectbox("Select Match ID", matches_df.index.tolist(), key="match_id")
-
-                # Safely extract match row
-                match_row = matches_df.loc[match_id]
-
-                # Handle match_row being a Series, string, or dict
-                import json
-                if isinstance(match_row, pd.Series):
-                    match_row = match_row.to_dict()
-                elif isinstance(match_row, str):
-                    try:
-                        match_row = json.loads(match_row)
-                    except:
-                        match_row = {}
-                elif not isinstance(match_row, dict):
-                    match_row = {}
-
-                # Display match summary
-                summary_data = {
-                    "Runs": match_row.get("runs", "N/A"),
-                    "Wickets": match_row.get("wickets", "N/A"),
-                    "Catches": match_row.get("catches", "N/A"),
-                    "Efficiency": match_row.get("efficiency", "N/A")
-                }
-                st.subheader("Selected Match Summary")
-                st.table(pd.DataFrame([summary_data]))
-
-                # Delete match button
-                if st.button("Delete Match"):
-                    delete_match(db, username, selected_player, match_id)
-                    st.success(f"Deleted match '{match_id}' for {selected_player}")
-                    st.rerun()
-            else:
-                st.warning("No valid match data found for this player.")
 
     # 2. Team Results
     if page == "Team Results":
