@@ -10,22 +10,22 @@ def set_bg_local(img_path):
     with open(img_path, "rb") as f:
         data = f.read()
     encoded = base64.b64encode(data).decode()
-    st.markdown(
-        f"""
-        <style>
-        body, .stApp {{
-            background-image: url('data:image/png;base64,{encoded}');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            background-position: center center;
-            min-height: 100vh;
-            width: 100vw;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+st.markdown(
+    f"""
+    <style>
+    body, .stApp {{
+        background-image: url("data:image/png;base64,{encoded}") !important;
+        background-size: cover !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+        background-position: center center !important;
+        min-height: 100vh !important;
+        width: 100vw !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Initialize Firebase
 st.set_page_config(page_title="CricScore+", layout="wide")
