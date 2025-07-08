@@ -6,12 +6,36 @@ import altair as alt
 from auth import init_firebase, register_coach, login_coach
 from players import fetch_players, save_player, fetch_matches, save_match, delete_player, delete_match
 
+def set_bg_local(img_path):
+    with open(img_path, "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    st.markdown(
+        f"""
+        <style>
+        body, .stApp {{
+            background-image: url('data:image/png;base64,{encoded}');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center center;
+            min-height: 100vh;
+            width: 100vw;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
 # Initialize Firebase
 st.set_page_config(page_title="CricScore+", layout="wide")
 st.markdown("""
     <style>
         .css-1jc7ptx, .e1ewe7hr3, .e1ewe7hr1 {
             visibility: hidden;
+        }
+        .stApp {
+            margin-top: -75px;
         }
         /* CSS to hide the white header bar */
         .st-emotion-cache-1eyfjps {
@@ -34,6 +58,20 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+    <style>
+    h1, h2, h3, h4 {
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .stats-box strong {
+        font-size: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 db = init_firebase()
 
 # Session state
@@ -46,6 +84,7 @@ if 'logged_in' not in st.session_state:
 
 # Credentials page
 def show_credentials():
+    set_bg_local("123.jpg")
     st.title("CricScore+")
     mode = st.radio("", ["Login", "Register"], horizontal=True)
     if mode == "Register":
@@ -77,7 +116,7 @@ def show_credentials():
 
 # Main application pages
 def show_app():
-    st.sidebar.title(f"Welcome Coach - {st.session_state['team']}")
+    st.sidebar.title(f"Welcome, Coach – {st.session_state['team']}")
     page = st.sidebar.radio("Navigate", ["Edit Player Details", "Team Results", "Player Analytics"])
     username = st.session_state['username']
 
@@ -145,7 +184,7 @@ def show_app():
         st.subheader("Delete Player")
         if not df.empty:
             to_delete = st.selectbox("Select Player to delete", df.index.tolist(), key="delete_player")
-            if st.button("Delete Player"):
+            if st.button("Remove Player"):
                 delete_player(db, username, to_delete)
                 st.success(f"Deleted player '{to_delete}'")
                 st.rerun()
@@ -222,7 +261,7 @@ def show_app():
         if not df.empty:
             selected = st.selectbox("Select Player", df.index.tolist())
             player_data = df.loc[selected]
-            st.subheader("Summary Stats")
+            st.subheader("Player Summary Statistics")
             st.markdown(
                 f"""
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
@@ -255,7 +294,7 @@ def show_app():
             if not match_df.empty:
                 st.subheader("Match-wise Performance")
                 st.dataframe(match_df)
-                st.subheader("Performance Trends")
+                st.subheader("Performance Trend Visualizations")
                 # Add a container for the expanders to apply staggered animation
                 st.markdown('<div id="performance-trends-expanders">', unsafe_allow_html=True)
                 
@@ -508,7 +547,6 @@ def show_app():
             else:
                 st.warning("No match records found for this player.")
 
-
 # Entry point
 def main():
     if not st.session_state['logged_in']:
@@ -517,4 +555,4 @@ def main():
         show_app()
 
 if __name__ == "__main__":
-    main() 
+    main()
