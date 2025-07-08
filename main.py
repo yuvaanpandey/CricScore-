@@ -84,7 +84,7 @@ if 'logged_in' not in st.session_state:
 
 # Credentials page
 def show_credentials():
-    set_bg_local("cricscore+ background.png")
+    set_bg_local("login_bg.png")
     st.title("CricScore+")
     mode = st.radio("", ["Login", "Register"], horizontal=True)
     if mode == "Register":
