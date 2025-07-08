@@ -85,14 +85,17 @@ if 'logged_in' not in st.session_state:
 # Credentials page
 def show_credentials():
     set_bg_local("login_bg.png")
-    st.title("CricScore+")
-    mode = st.radio("", ["Login", "Register"], horizontal=True)
+st.title("CricScore+")
+
+mode = st.radio("", ["Login", "Register"], horizontal=True)
+
 if mode == "Register":
     st.subheader("Register as Coach")
     user = st.text_input("Your Name", key="reg_user")
     team = st.text_input("Your Team Name", key="reg_team")
     pwd = st.text_input("Password", type="password", key="reg_pass")
     cpwd = st.text_input("Confirm Password", type="password", key="reg_confirm")
+
     if st.button("Register"):
         if not user or not team or not pwd:
             st.error("All fields are required.")
@@ -109,6 +112,7 @@ elif mode == "Login":
     st.subheader("Coach Login")
     user = st.text_input("Your Name", key="login_user")
     pwd = st.text_input("Password", type="password", key="login_pass")
+
     if st.button("Login"):
         ok, team = login_coach(db, user, pwd)
         if ok:
@@ -116,7 +120,8 @@ elif mode == "Login":
             st.rerun()
         else:
             st.error("Invalid credentials.")
-    st.stop()
+
+st.stop()
 
 # Main application pages
 def show_app():
