@@ -256,7 +256,7 @@ if not df.empty:
                 st.warning("No valid match data found for this player.")
 
     # 2. Team Results
-    elif page == "Team Results":
+    if page == "Team Results":
         st.header("Team Results")
         df = fetch_players(db, username)
 
