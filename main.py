@@ -160,44 +160,80 @@ def show_app():
                     st.error("Player name cannot be empty.")
 
     # Add Match
-    st.subheader("Add Match Record")
-    if not df.empty:
-        selected_player = st.selectbox("Select Player", df.index.tolist(), key="match_player")
-        with st.form("match_form"):
-            match_id = st.text_input("Match ID")
-            runs = st.number_input("Runs", min_value=0)
-            wickets = st.number_input("Wickets", min_value=0)
-            catches = st.number_input("Catches", min_value=0)
-            balls_faced = st.number_input("Balls Faced", min_value=0)
-            fours = st.number_input("Fours", min_value=0)
-            sixes = st.number_input("Sixes", min_value=0)
-            balls_bowled = st.number_input("Balls Bowled", min_value=0)
-            dot_balls = st.number_input("Dot Balls", min_value=0)
-            submitted = st.form_submit_button("Save Match")
-            if submitted:
-                if match_id.strip():
-                    strike_rate = round((runs / balls_faced * 100), 2) if balls_faced > 0 else 0
-                    economy = round((runs / (balls_bowled / 6)), 2) if balls_bowled > 0 else 0
-                    efficiency = runs + wickets * 20 + catches * 10 + sixes * 2 + fours - dot_balls
-                    match_data = {
-                        "runs": runs,
-                        "wickets": wickets,
-                        "catches": catches,
-                        "balls_faced": balls_faced,
-                        "fours": fours,
-                        "sixes": sixes,
-                        "balls_bowled": balls_bowled,
-                        "dot_balls": dot_balls,
-                        "strike_rate": strike_rate,
-                        "economy": economy,
-                        "efficiency": efficiency
-                    }
-                    success, msg = save_match(db, username, selected_player, match_id.strip(), **match_data)
-                    st.success(msg) if success else st.error(msg)
-                    if success:
-                        st.rerun()
-                else:
-                    st.error("Match ID cannot be empty.")
+st.subheader("Add Match Record")
+if not df.empty:
+    selected_player = st.selectbox("Select Player", df.index.tolist(), key="match_player")
+    with st.form("match_form"):
+        match_id = st.text_input("Match ID")
+        runs = st.number_input("Runs", min_value=0)
+        wickets = st.number_input("Wickets", min_value=0)
+        catches = st.number_input("Catches", min_value=0)
+        balls_faced = st.number_input("Balls Faced", min_value=0)
+        fours = st.number_input("Fours", min_value=0)
+        sixes = st.number_input("Sixes", min_value=0)
+        balls_bowled = st.number_input("Balls Bowled", min_value=0)
+        dot_balls = st.number_input("Dot Balls", min_value=0)
+        role = df.loc[selected_player]["role"]  # Add this line to get the role from player data
+
+        submitted = st.form_submit_button("Save Match")
+        if submitted:
+            if match_id.strip():
+                strike_rate = round((runs / balls_faced * 100), 2) if balls_faced > 0 else 0
+                economy = round((runs / (balls_bowled / 6)), 2) if balls_bowled > 0 else 0
+
+                if role == "Batsman":
+                    efficiency = (
+                        1.0 * runs +
+                        4.0 * fours +
+                        6.0 * sixes +
+                        0.6 * strike_rate -
+                        0.5 * dot_balls +
+                        10.0 * catches +
+                        15.0 * wickets -
+                        1.5 * economy
+                    )
+                elif role == "Bowler":
+                    efficiency = (
+                        0.5 * runs +
+                        2.0 * fours +
+                        3.0 * sixes +
+                        0.2 * strike_rate -
+                        0.3 * dot_balls +
+                        10.0 * catches +
+                        25.0 * wickets -
+                        3.0 * economy
+                    )
+                else:  # All-Rounder
+                    efficiency = (
+                        1.0 * runs +
+                        4.0 * fours +
+                        6.0 * sixes +
+                        0.5 * strike_rate -
+                        0.4 * dot_balls +
+                        10.0 * catches +
+                        20.0 * wickets -
+                        2.0 * economy
+                    )
+
+                match_data = {
+                    "runs": runs,
+                    "wickets": wickets,
+                    "catches": catches,
+                    "balls_faced": balls_faced,
+                    "fours": fours,
+                    "sixes": sixes,
+                    "balls_bowled": balls_bowled,
+                    "dot_balls": dot_balls,
+                    "strike_rate": strike_rate,
+                    "economy": economy,
+                    "efficiency": efficiency
+                }
+                success, msg = save_match(db, username, selected_player, match_id.strip(), **match_data)
+                st.success(msg) if success else st.error(msg)
+                if success:
+                    st.rerun()
+            else:
+                st.error("Match ID cannot be empty.")
 
     # Delete Player
     st.subheader("Delete Player")
@@ -265,7 +301,13 @@ def show_app():
 
             st.subheader("Top 11 Players by Efficiency")
             st.dataframe(df[["role", "efficiency", "total_runs", "total_wickets", "total_catches"]])
-            st.markdown("**Efficiency formula:** Runs + (Wickets × 20) + (Catches × 10)")
+            st.markdown("""
+**Efficiency formula (by role):**
+
+- **Batsman:** `1×Runs + 4×Fours + 6×Sixes + 0.6×Strike Rate − 0.5×Dot Balls + 10×Catches + 15×Wickets − 1.5×Economy`  
+- **Bowler:** `0.5×Runs + 2×Fours + 3×Sixes + 0.2×Strike Rate − 0.3×Dot Balls + 10×Catches + 25×Wickets − 3×Economy`  
+- **All-Rounder:** `1×Runs + 4×Fours + 6×Sixes + 0.5×Strike Rate − 0.4×Dot Balls + 10×Catches + 20×Wickets − 2×Economy`
+""")
 
     # 3. Player Analytics
     else:
