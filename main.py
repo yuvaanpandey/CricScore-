@@ -122,99 +122,131 @@ def show_app():
 
     # 1. Edit Player Details
     if page == "Edit Player Details":
-        st.header("Manage Your Team")
-        df = fetch_players(db, username)
+    st.header("Manage Your Team")
+    df = fetch_players(db, username)
 
-        # Add/Register Player
-st.subheader("Add / Register Player")
-with st.form("player_form"):
-    name = st.text_input("Player Name")
-    role = st.selectbox("Player Role", ["Batsman", "Bowler", "All-Rounder"])
-    submitted = st.form_submit_button("Save Player")
-    if submitted:
-        if name.strip():
-            success, msg = save_player(db, username, name.strip(), role)
-            st.success(msg) if success else st.error(msg)
-            if success:
-                st.rerun()
-        else:
-            st.error("Player name cannot be empty.")
-
-# Edit Existing Player Info
-st.subheader("Edit Player Info")
-df = fetch_players(db, username)
-if not df.empty:
-    selected_player = st.selectbox("Select Player to Edit", df.index.tolist(), key="edit_player")
-    existing_role = df.loc[selected_player]["role"]
-    with st.form("edit_player_form"):
-        new_name = st.text_input("New Name", value=selected_player)
-        new_role = st.selectbox("New Role", ["Batsman", "Bowler", "All-Rounder"], index=["Batsman", "Bowler", "All-Rounder"].index(existing_role))
-        update_submit = st.form_submit_button("Update Player")
-        if update_submit:
-            if new_name.strip():
-                # First delete old entry, then save with new name/role
-                delete_player(db, username, selected_player)
-                success, msg = save_player(db, username, new_name.strip(), new_role)
-                st.success("Player updated successfully.") if success else st.error("Error updating player.")
+    # Add/Register Player
+    st.subheader("Add / Register Player")
+    with st.form("player_form"):
+        name = st.text_input("Player Name")
+        role = st.selectbox("Player Role", ["Batsman", "Bowler", "All-Rounder"])
+        submitted = st.form_submit_button("Save Player")
+        if submitted:
+            if name.strip():
+                success, msg = save_player(db, username, name.strip(), role)
+                st.success(msg) if success else st.error(msg)
                 if success:
                     st.rerun()
             else:
                 st.error("Player name cannot be empty.")
 
-# Add Match
-st.subheader("Add Match Record")
-if not df.empty:
-    selected_player = st.selectbox("Select Player", df.index.tolist(), key="match_player")
-    with st.form("match_form"):
-        match_id = st.text_input("Match ID")
-        runs = st.number_input("Runs", min_value=0)
-        wickets = st.number_input("Wickets", min_value=0)
-        catches = st.number_input("Catches", min_value=0)
-        balls_faced = st.number_input("Balls Faced", min_value=0)
-        fours = st.number_input("Fours", min_value=0)
-        sixes = st.number_input("Sixes", min_value=0)
-        balls_bowled = st.number_input("Balls Bowled", min_value=0)
-        dot_balls = st.number_input("Dot Balls", min_value=0)
-        submitted = st.form_submit_button("Save Match")
-        if submitted:
-            if match_id.strip():
-                strike_rate = round((runs / balls_faced * 100), 2) if balls_faced > 0 else 0
-                economy = round((runs / (balls_bowled / 6)), 2) if balls_bowled > 0 else 0
-                efficiency = runs + wickets * 20 + catches * 10 + sixes * 2 + fours - dot_balls
-                match_data = {
-                    "runs": runs,
-                    "wickets": wickets,
-                    "catches": catches,
-                    "balls_faced": balls_faced,
-                    "fours": fours,
-                    "sixes": sixes,
-                    "balls_bowled": balls_bowled,
-                    "dot_balls": dot_balls,
-                    "strike_rate": strike_rate,
-                    "economy": economy,
-                    "efficiency": efficiency
-                }
-                success, msg = save_match(db, username, selected_player, match_id.strip(), **match_data)
-                st.success(msg) if success else st.error(msg)
-                if success:
-                    st.rerun()
-            else:
-                st.error("Match ID cannot be empty.")
+    # Edit Existing Player Info
+    st.subheader("Edit Player Info")
+    if not df.empty:
+        selected_player = st.selectbox("Select Player to Edit", df.index.tolist(), key="edit_player")
+        existing_role = df.loc[selected_player]["role"]
+        with st.form("edit_player_form"):
+            new_name = st.text_input("New Name", value=selected_player)
+            new_role = st.selectbox("New Role", ["Batsman", "Bowler", "All-Rounder"], index=["Batsman", "Bowler", "All-Rounder"].index(existing_role))
+            update_submit = st.form_submit_button("Update Player")
+            if update_submit:
+                if new_name.strip():
+                    delete_player(db, username, selected_player)
+                    success, msg = save_player(db, username, new_name.strip(), new_role)
+                    st.success("Player updated successfully.") if success else st.error("Error updating player.")
+                    if success:
+                        st.rerun()
+                else:
+                    st.error("Player name cannot be empty.")
 
-        # Delete Player
-        st.subheader("Delete Player")
-        if not df.empty:
-            to_delete = st.selectbox("Select Player to delete", df.index.tolist(), key="delete_player")
-            if st.button("Delete Player"):
-                delete_player(db, username, to_delete)
-                st.success(f"Deleted player '{to_delete}'")
+    # Add Match
+    st.subheader("Add Match Record")
+    if not df.empty:
+        selected_player = st.selectbox("Select Player", df.index.tolist(), key="match_player")
+        with st.form("match_form"):
+            match_id = st.text_input("Match ID")
+            runs = st.number_input("Runs", min_value=0)
+            wickets = st.number_input("Wickets", min_value=0)
+            catches = st.number_input("Catches", min_value=0)
+            balls_faced = st.number_input("Balls Faced", min_value=0)
+            fours = st.number_input("Fours", min_value=0)
+            sixes = st.number_input("Sixes", min_value=0)
+            balls_bowled = st.number_input("Balls Bowled", min_value=0)
+            dot_balls = st.number_input("Dot Balls", min_value=0)
+            submitted = st.form_submit_button("Save Match")
+            if submitted:
+                if match_id.strip():
+                    strike_rate = round((runs / balls_faced * 100), 2) if balls_faced > 0 else 0
+                    economy = round((runs / (balls_bowled / 6)), 2) if balls_bowled > 0 else 0
+                    efficiency = runs + wickets * 20 + catches * 10 + sixes * 2 + fours - dot_balls
+                    match_data = {
+                        "runs": runs,
+                        "wickets": wickets,
+                        "catches": catches,
+                        "balls_faced": balls_faced,
+                        "fours": fours,
+                        "sixes": sixes,
+                        "balls_bowled": balls_bowled,
+                        "dot_balls": dot_balls,
+                        "strike_rate": strike_rate,
+                        "economy": economy,
+                        "efficiency": efficiency
+                    }
+                    success, msg = save_match(db, username, selected_player, match_id.strip(), **match_data)
+                    st.success(msg) if success else st.error(msg)
+                    if success:
+                        st.rerun()
+                else:
+                    st.error("Match ID cannot be empty.")
+
+    # Delete Player
+    st.subheader("Delete Player")
+    if not df.empty:
+        to_delete = st.selectbox("Select Player to delete", df.index.tolist(), key="delete_player")
+        if st.button("Delete Player"):
+            delete_player(db, username, to_delete)
+            st.success(f"Deleted player '{to_delete}'")
+            st.rerun()
+
+    # Delete Match Record
+    st.subheader("Delete Match Record")
+    if not df.empty:
+        selected_player = st.selectbox("Player Name", df.index.tolist(), key="del_match_player")
+        matches_df = fetch_matches(db, username, selected_player)
+
+        if isinstance(matches_df, pd.DataFrame):
+            matches_df = matches_df.dropna(how="all")
+
+        if not matches_df.empty:
+            match_id = st.selectbox("Select Match ID", matches_df.index.tolist(), key="match_id")
+
+            match_row = matches_df.loc[match_id]
+            import json
+            if isinstance(match_row, pd.Series):
+                match_row = match_row.to_dict()
+            elif isinstance(match_row, str):
+                try:
+                    match_row = json.loads(match_row)
+                except:
+                    match_row = {}
+            elif not isinstance(match_row, dict):
+                match_row = {}
+
+            summary_data = {
+                "Runs": match_row.get("runs", "N/A"),
+                "Wickets": match_row.get("wickets", "N/A"),
+                "Catches": match_row.get("catches", "N/A"),
+                "Efficiency": match_row.get("efficiency", "N/A")
+            }
+            st.subheader("Selected Match Summary")
+            st.table(pd.DataFrame([summary_data]))
+
+            if st.button("Delete Match"):
+                delete_match(db, username, selected_player, match_id)
+                st.success(f"Deleted match '{match_id}' for {selected_player}")
                 st.rerun()
-
-        # Delete Match Record
-        st.subheader("Delete Match Record")
-        if not df.empty:
-            selected_player = st.selectbox("Player Name", df.index.tolist(), key="del_match_player")
-            matches_df = fetch_matches(db, username, selected_player)
+        else:
+            st.warning("No valid match data found for this player.")
 
             # Clean malformed rows (if any)
             if isinstance(matches_df, pd.DataFrame):
