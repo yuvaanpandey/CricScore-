@@ -12,10 +12,10 @@ def set_bg_local(img_path):
     encoded = base64.b64encode(data).decode()
 
     st.markdown(
-        f"""
+        """
         <style>
-        body, .stApp {{
-            background-image: url("data:image/png;base64,{encoded}") !important;
+        .main {{
+            background-image: url("data:image/png;base64,%s") !important;
             background-size: cover !important;
             background-repeat: no-repeat !important;
             background-attachment: fixed !important;
@@ -24,7 +24,7 @@ def set_bg_local(img_path):
             width: 100vw !important;
         }}
         </style>
-        """,
+        """ % encoded,
         unsafe_allow_html=True
     )
 
