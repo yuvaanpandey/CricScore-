@@ -7,24 +7,24 @@ from auth import init_firebase, register_coach, login_coach
 from players import fetch_players, save_player, fetch_matches, save_match, delete_player, delete_match
 
 def set_bg_local(img_path):
+    print("Setting background image")
     with open(img_path, "rb") as f:
         data = f.read()
     encoded = base64.b64encode(data).decode()
-
     st.markdown(
-        """
+        '''
         <style>
-        .main {{
+        .stApp {
             background-image: url("data:image/png;base64,%s") !important;
             background-size: cover !important;
-            background-repeat: no-repeat !important;
             background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
             background-position: center center !important;
             min-height: 100vh !important;
             width: 100vw !important;
-        }}
+        }
         </style>
-        """ % encoded,
+        ''' % encoded,
         unsafe_allow_html=True
     )
 
@@ -86,218 +86,216 @@ if 'logged_in' not in st.session_state:
 # Credentials page
 def show_credentials():
     set_bg_local("login_bg.png")
-st.title("CricScore+")
+    st.title("CricScore+")
 
-mode = st.radio("", ["Login", "Register"], horizontal=True)
+    mode = st.radio("", ["Login", "Register"], horizontal=True)
 
-if mode == "Register":
-    st.subheader("Register as Coach")
-    user = st.text_input("Your Name", key="reg_user")
-    team = st.text_input("Your Team Name", key="reg_team")
-    pwd = st.text_input("Password", type="password", key="reg_pass")
-    cpwd = st.text_input("Confirm Password", type="password", key="reg_confirm")
+    if mode == "Register":
+        st.subheader("Register as Coach")
+        user = st.text_input("Your Name", key="reg_user")
+        team = st.text_input("Your Team Name", key="reg_team")
+        pwd = st.text_input("Password", type="password", key="reg_pass")
+        cpwd = st.text_input("Confirm Password", type="password", key="reg_confirm")
 
-    if st.button("Register"):
-        if not user or not team or not pwd:
-            st.error("All fields are required.")
-        elif pwd != cpwd:
-            st.error("Passwords do not match.")
-        else:
-            ok, msg = register_coach(db, user, team, pwd)
-            if ok:
-                st.success(msg + " Please login.")
+        if st.button("Register"):
+            if not user or not team or not pwd:
+                st.error("All fields are required.")
+            elif pwd != cpwd:
+                st.error("Passwords do not match.")
             else:
-                st.error(msg)
+                ok, msg = register_coach(db, user, team, pwd)
+                if ok:
+                    st.success(msg + " Please login.")
+                else:
+                    st.error(msg)
 
-elif mode == "Login":
-    st.subheader("Coach Login")
-    user = st.text_input("Your Name", key="login_user")
-    pwd = st.text_input("Password", type="password", key="login_pass")
+    elif mode == "Login":
+        st.subheader("Coach Login")
+        user = st.text_input("Your Name", key="login_user")
+        pwd = st.text_input("Password", type="password", key="login_pass")
 
-    if st.button("Login"):
-        ok, team = login_coach(db, user, pwd)
-        if ok:
-            st.session_state.update({'logged_in': True, 'username': user, 'team': team})
-            st.rerun()
-        else:
-            st.error("Invalid credentials.")
-
-st.stop()
+        if st.button("Login"):
+            ok, team = login_coach(db, user, pwd)
+            if ok:
+                st.session_state.update({'logged_in': True, 'username': user, 'team': team})
+                st.rerun()
+            else:
+                st.error("Invalid credentials.")
 
 # Main application pages
 def show_app():
     st.sidebar.title(f"Welcome, Coach - {st.session_state['team']}")
     page = st.sidebar.radio("Navigate", ["Edit Player Details", "Team Results", "Player Analytics"])
+    if st.sidebar.button("Logout"):
+        st.session_state.update({'logged_in': False, 'username': None, 'team': None})
+        st.rerun()
     username = st.session_state['username']
+    df = fetch_players(db, username)
 
     # 1. Edit Player Details
     if page == "Edit Player Details":
-        st.header("Manage Your Team")
-        df = fetch_players(db, username)
+        st.header("Manage Your Team")        
 
-    # Add/Register Player
-    st.subheader("Add / Register Player")
-    with st.form("player_form"):
-        name = st.text_input("Player Name")
-        role = st.selectbox("Player Role", ["Batsman", "Bowler", "All-Rounder"])
-        submitted = st.form_submit_button("Save Player")
-        if submitted:
-            if name.strip():
-                success, msg = save_player(db, username, name.strip(), role)
-                st.success(msg) if success else st.error(msg)
-                if success:
-                    st.rerun()
-            else:
-                st.error("Player name cannot be empty.")
-
-    # Edit Existing Player Info
-    st.subheader("Edit Player Info")
-    if not df.empty:
-        selected_player = st.selectbox("Select Player to Edit", df.index.tolist(), key="edit_player")
-        existing_role = df.loc[selected_player]["role"]
-        with st.form("edit_player_form"):
-            new_name = st.text_input("New Name", value=selected_player)
-            new_role = st.selectbox("New Role", ["Batsman", "Bowler", "All-Rounder"], index=["Batsman", "Bowler", "All-Rounder"].index(existing_role))
-            update_submit = st.form_submit_button("Update Player")
-            if update_submit:
-                if new_name.strip():
-                    delete_player(db, username, selected_player)
-                    success, msg = save_player(db, username, new_name.strip(), new_role)
-                    st.success("Player updated successfully.") if success else st.error("Error updating player.")
+        # Add/Register Player
+        st.subheader("Add / Register Player")
+        with st.form("player_form"):
+            name = st.text_input("Player Name")
+            role = st.selectbox("Player Role", ["Batsman", "Bowler", "All-Rounder"])
+            submitted = st.form_submit_button("Save Player")
+            if submitted:
+                if name.strip():
+                    success, msg = save_player(db, username, name.strip(), role)
+                    st.success(msg) if success else st.error(msg)
                     if success:
                         st.rerun()
                 else:
                     st.error("Player name cannot be empty.")
 
-    # Add Match
-st.subheader("Add Match Record")
-if not df.empty:
-    selected_player = st.selectbox("Select Player", df.index.tolist(), key="match_player")
-    with st.form("match_form"):
-        match_id = st.text_input("Match ID")
-        runs = st.number_input("Runs", min_value=0)
-        wickets = st.number_input("Wickets", min_value=0)
-        catches = st.number_input("Catches", min_value=0)
-        balls_faced = st.number_input("Balls Faced", min_value=0)
-        fours = st.number_input("Fours", min_value=0)
-        sixes = st.number_input("Sixes", min_value=0)
-        balls_bowled = st.number_input("Balls Bowled", min_value=0)
-        dot_balls = st.number_input("Dot Balls", min_value=0)
-        role = df.loc[selected_player]["role"]  # Add this line to get the role from player data
+        
+        if not df.empty:
+            # Edit Existing Player Info
+            st.subheader("Edit Player Info")
+            selected_player = st.selectbox("Select Player to Edit", df.index.tolist(), key="edit_player")
+            existing_role = df.loc[selected_player]["role"]
+            with st.form("edit_player_form"):
+                new_name = st.text_input("New Name", value=selected_player)
+                new_role = st.selectbox("New Role", ["Batsman", "Bowler", "All-Rounder"], index=["Batsman", "Bowler", "All-Rounder"].index(existing_role))
+                update_submit = st.form_submit_button("Update Player")
+                if update_submit:
+                    if new_name.strip():
+                        delete_player(db, username, selected_player)
+                        success, msg = save_player(db, username, new_name.strip(), new_role)
+                        st.success("Player updated successfully.") if success else st.error("Error updating player.")
+                        if success:
+                            st.rerun()
+                    else:
+                        st.error("Player name cannot be empty.")
 
-        submitted = st.form_submit_button("Save Match")
-        if submitted:
-            if match_id.strip():
-                strike_rate = round((runs / balls_faced * 100), 2) if balls_faced > 0 else 0
-                economy = round((runs / (balls_bowled / 6)), 2) if balls_bowled > 0 else 0
+            # Add Match
+            st.subheader("Add Match Record")
+            selected_player = st.selectbox("Select Player", df.index.tolist(), key="match_player")
+            with st.form("match_form"):
+                match_id = st.text_input("Match ID")
+                runs = st.number_input("Runs", min_value=0)
+                wickets = st.number_input("Wickets", min_value=0)
+                catches = st.number_input("Catches", min_value=0)
+                balls_faced = st.number_input("Balls Faced", min_value=0)
+                fours = st.number_input("Fours", min_value=0)
+                sixes = st.number_input("Sixes", min_value=0)
+                balls_bowled = st.number_input("Balls Bowled", min_value=0)
+                dot_balls = st.number_input("Dot Balls", min_value=0)
+                role = df.loc[selected_player]["role"]  # Add this line to get the role from player data
 
-                if role == "Batsman":
-                    efficiency = (
-                        1.0 * runs +
-                        4.0 * fours +
-                        6.0 * sixes +
-                        0.6 * strike_rate -
-                        0.5 * dot_balls +
-                        10.0 * catches +
-                        15.0 * wickets -
-                        1.5 * economy
-                    )
-                elif role == "Bowler":
-                    efficiency = (
-                        0.5 * runs +
-                        2.0 * fours +
-                        3.0 * sixes +
-                        0.2 * strike_rate -
-                        0.3 * dot_balls +
-                        10.0 * catches +
-                        25.0 * wickets -
-                        3.0 * economy
-                    )
-                else:  # All-Rounder
-                    efficiency = (
-                        1.0 * runs +
-                        4.0 * fours +
-                        6.0 * sixes +
-                        0.5 * strike_rate -
-                        0.4 * dot_balls +
-                        10.0 * catches +
-                        20.0 * wickets -
-                        2.0 * economy
-                    )
+                submitted = st.form_submit_button("Save Match")
+                if submitted:
+                    if match_id.strip():
+                        strike_rate = round((runs / balls_faced * 100), 2) if balls_faced > 0 else 0
+                        economy = round((runs / (balls_bowled / 6)), 2) if balls_bowled > 0 else 0
 
-                match_data = {
-                    "runs": runs,
-                    "wickets": wickets,
-                    "catches": catches,
-                    "balls_faced": balls_faced,
-                    "fours": fours,
-                    "sixes": sixes,
-                    "balls_bowled": balls_bowled,
-                    "dot_balls": dot_balls,
-                    "strike_rate": strike_rate,
-                    "economy": economy,
-                    "efficiency": efficiency
+                        if role == "Batsman":
+                            efficiency = (
+                                1.0 * runs +
+                                4.0 * fours +
+                                6.0 * sixes +
+                                0.6 * strike_rate -
+                                0.5 * dot_balls +
+                                10.0 * catches +
+                                15.0 * wickets -
+                                1.5 * economy
+                            )
+                        elif role == "Bowler":
+                            efficiency = (
+                                0.5 * runs +
+                                2.0 * fours +
+                                3.0 * sixes +
+                                0.2 * strike_rate -
+                                0.3 * dot_balls +
+                                10.0 * catches +
+                                25.0 * wickets -
+                                3.0 * economy
+                            )
+                        else:  # All-Rounder
+                            efficiency = (
+                                1.0 * runs +
+                                4.0 * fours +
+                                6.0 * sixes +
+                                0.5 * strike_rate -
+                                0.4 * dot_balls +
+                                10.0 * catches +
+                                20.0 * wickets -
+                                2.0 * economy
+                            )
+
+                        match_data = {
+                            "runs": runs,
+                            "wickets": wickets,
+                            "catches": catches,
+                            "balls_faced": balls_faced,
+                            "fours": fours,
+                            "sixes": sixes,
+                            "balls_bowled": balls_bowled,
+                            "dot_balls": dot_balls,
+                            "strike_rate": strike_rate,
+                            "economy": economy,
+                            "efficiency": efficiency
+                        }
+                        success, msg = save_match(db, username, selected_player, match_id.strip(), **match_data)
+                        st.success(msg) if success else st.error(msg)
+                        if success:
+                            st.rerun()
+                    else:
+                        st.error("Match ID cannot be empty.")
+
+            # Delete Player
+            st.subheader("Delete Player")
+            to_delete = st.selectbox("Select Player to delete", df.index.tolist(), key="delete_player")
+            if st.button("Delete Player"):
+                delete_player(db, username, to_delete)
+                st.success(f"Deleted player '{to_delete}'")
+                st.rerun()
+
+            # Delete Match Record
+            st.subheader("Delete Match Record")
+            selected_player = st.selectbox("Player Name", df.index.tolist(), key="del_match_player")
+            matches_df = fetch_matches(db, username, selected_player)
+
+            if isinstance(matches_df, pd.DataFrame):
+                matches_df = matches_df.dropna(how="all")
+
+            if not matches_df.empty:
+                match_id = st.selectbox("Select Match ID", matches_df.index.tolist(), key="match_id")
+
+                match_row = matches_df.loc[match_id]
+                import json
+                if isinstance(match_row, pd.Series):
+                    match_row = match_row.to_dict()
+                elif isinstance(match_row, str):
+                    try:
+                        match_row = json.loads(match_row)
+                    except:
+                        match_row = {}
+                elif not isinstance(match_row, dict):
+                    match_row = {}
+
+                summary_data = {
+                    "Runs": match_row.get("runs", "N/A"),
+                    "Wickets": match_row.get("wickets", "N/A"),
+                    "Catches": match_row.get("catches", "N/A"),
+                    "Efficiency": match_row.get("efficiency", "N/A")
                 }
-                success, msg = save_match(db, username, selected_player, match_id.strip(), **match_data)
-                st.success(msg) if success else st.error(msg)
-                if success:
+                st.subheader("Selected Match Summary")
+                st.table(pd.DataFrame([summary_data]))
+
+                if st.button("Delete Match"):
+                    delete_match(db, username, selected_player, match_id)
+                    st.success(f"Deleted match '{match_id}' for {selected_player}")
                     st.rerun()
             else:
-                st.error("Match ID cannot be empty.")
-
-    # Delete Player
-    st.subheader("Delete Player")
-    if not df.empty:
-        to_delete = st.selectbox("Select Player to delete", df.index.tolist(), key="delete_player")
-        if st.button("Delete Player"):
-            delete_player(db, username, to_delete)
-            st.success(f"Deleted player '{to_delete}'")
-            st.rerun()
-
-    # Delete Match Record
-    st.subheader("Delete Match Record")
-    if not df.empty:
-        selected_player = st.selectbox("Player Name", df.index.tolist(), key="del_match_player")
-        matches_df = fetch_matches(db, username, selected_player)
-
-        if isinstance(matches_df, pd.DataFrame):
-            matches_df = matches_df.dropna(how="all")
-
-        if not matches_df.empty:
-            match_id = st.selectbox("Select Match ID", matches_df.index.tolist(), key="match_id")
-
-            match_row = matches_df.loc[match_id]
-            import json
-            if isinstance(match_row, pd.Series):
-                match_row = match_row.to_dict()
-            elif isinstance(match_row, str):
-                try:
-                    match_row = json.loads(match_row)
-                except:
-                    match_row = {}
-            elif not isinstance(match_row, dict):
-                match_row = {}
-
-            summary_data = {
-                "Runs": match_row.get("runs", "N/A"),
-                "Wickets": match_row.get("wickets", "N/A"),
-                "Catches": match_row.get("catches", "N/A"),
-                "Efficiency": match_row.get("efficiency", "N/A")
-            }
-            st.subheader("Selected Match Summary")
-            st.table(pd.DataFrame([summary_data]))
-
-            if st.button("Delete Match"):
-                delete_match(db, username, selected_player, match_id)
-                st.success(f"Deleted match '{match_id}' for {selected_player}")
-                st.rerun()
-        else:
-            st.warning("No valid match data found for this player.")
+                st.warning("No valid match data found for this player.")
 
     # 2. Team Results
-    if page == "Team Results":
+    elif page == "Team Results":
         st.header("Team Results")
-        df = fetch_players(db, username)
 
         if df.empty:
             st.warning("No players found. Add some first.")
@@ -322,7 +320,6 @@ if not df.empty:
     # 3. Player Analytics
     else:
         st.header("Player Analytics")
-        df = fetch_players(db, username)
         if not df.empty:
             selected = st.selectbox("Select Player", df.index.tolist())
             player_data = df.loc[selected]
@@ -330,19 +327,19 @@ if not df.empty:
             st.markdown(
                 f"""
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    <div class="stats-box" style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
+                    <div class="stats-box" style="color: black; background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
                         <strong>Role:</strong> {player_data['role']}
                     </div>
-                    <div class="stats-box" style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
+                    <div class="stats-box" style="color: black; background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
                         <strong>Efficiency:</strong> {player_data['efficiency']}
                     </div>
-                    <div class="stats-box" style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
+                    <div class="stats-box" style="color: black; background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
                         <strong>Total Runs:</strong> {player_data['total_runs']}
                     </div>
-                    <div class="stats-box" style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
+                    <div class="stats-box" style="color: black; background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
                         <strong>Total Wickets:</strong> {player_data['total_wickets']}
                     </div>
-                    <div class="stats-box" style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
+                    <div class="stats-box" style="color: black; background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: background-color 0.3s, color 0.3s;">
                         <strong>Total Catches:</strong> {player_data['total_catches']}
                     </div>
                 </div>
